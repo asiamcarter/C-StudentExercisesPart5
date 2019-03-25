@@ -40,11 +40,17 @@ namespace StudentExercisesPart5.Controllers
                                        c.[Name] as CohortName,
                                        e.id as ExerciseId,
                                        e.[name] as ExerciseName,
-                                       e.[Language]
+                                       e.[Language],
+                                        i.Id as InstructorId,
+                                        i.FirstName as InstructorFirstName,
+                                        i.LastName as InstructorLastName
                                        from student s
                                        left join Cohort c on s.CohortId = c.id
-                                       left join StudentExercise se on s.id = se.studentid
-                                       left join Exercise e on se.exerciseid = e.id;";
+                                       left join StudentExercise se on s.id =                           se.studentid
+                                       left join Exercise e on se.exerciseid = e.id
+                                       left join Instructor i on c.id = i.CohortId;";
+
+                    
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     Dictionary<int, Cohort> cohorts = new Dictionary<int, Cohort>();
@@ -57,32 +63,52 @@ namespace StudentExercisesPart5.Controllers
                             {
                                 Id = CohortId,
                                 Name = reader.GetString(reader.GetOrdinal("CohortName")),
-                                StudentList = new List<Student>()
-                                
+                                StudentList = new List<Student>(),
+                                InstructorList = new List<Instructor>()
                             };
 
                             cohorts.Add(CohortId, newCohort);
                         }
-
-                        if (!reader.IsDBNull(reader.GetOrdinal("StudentId")))
+                        if (!reader.IsDBNull(reader.GetOrdinal("CohortId")))
                         {
-                            Cohort currentStudent = cohorts[CohortId];
-                            currentStudent.StudentList.Add(
+                            Cohort currentCohort = cohorts[CohortId];
+                            if (!currentCohort.StudentList.Any(x => x.Id == reader.GetInt32(reader.GetOrdinal("StudentId"))))
+                            {
+
+                                currentCohort.StudentList.Add(
                                 new Student
                                 {
                                     Id = reader.GetInt32(reader.GetOrdinal("StudentId")),
                                     FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-                                    LastName = reader.GetString(reader.GetOrdinal("LastName")),                 
+                                    LastName = reader.GetString(reader.GetOrdinal("LastName")),
                                 }
                             );
-                        }else
-                        {
+                            }
+                            if (!currentCohort.InstructorList.Any(x => x.Id == reader.GetInt32(reader.GetOrdinal("InstructorId"))))
 
+                            {
+
+                                currentCohort.InstructorList.Add(
+
+                                    new Instructor
+
+                                    {
+
+                                        Id = reader.GetInt32(reader.GetOrdinal("InstructorId")),
+
+                                        FirstName = reader.GetString(reader.GetOrdinal("InstructorFirstName")),
+
+                                        LastName = reader.GetString(reader.GetOrdinal("InstructorLastName"))
+
+
+                                    }
+
+                                );
+
+                            }
                         }
                     }
-
                     reader.Close();
-
                     return cohorts.Values.ToList();
                 }
             }

@@ -44,7 +44,7 @@ namespace StudentExercisesPart5.Controllers
                                     from student s
                                     left join Cohort c on s.CohortId = c.id
                                     left join StudentExercise se on s.id = se.studentid
-                                    left join Exercise e on se.exerciseid = e.id;";
+                                    left join Exercise e on se.exerciseid = e.id";
                     SqlDataReader reader = cmd.ExecuteReader();
                     List<Student> students = new List<Student>();
                     while (reader.Read())
@@ -69,8 +69,13 @@ namespace StudentExercisesPart5.Controllers
                     }
                 }
             }
-        
-        
+
+        //GET: api/Student?include=exercise
+        [HttpGet]
+        public async Task<string> GetStudentIfIncludes(string include)
+        {
+            return "test";
+        }
 
         // GET: api/Student/5
         [HttpGet("{id}", Name = "GetStudents")]
