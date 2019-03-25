@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace StudentExercises_v604.Model
+namespace SEWebApi.Model
 {
     public class Instructor
     {

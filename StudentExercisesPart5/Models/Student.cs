@@ -1,10 +1,11 @@
-﻿using System;
+﻿using SEWebApi.Model;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace StudentExercises_v604.Model
+namespace SEWebApi.Model
 {
-    class Student
+    public class Student
     {
         public int Id { get; set; }
         public string FirstName { get; set; }

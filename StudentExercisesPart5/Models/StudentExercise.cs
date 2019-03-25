@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace StudentExercises_v604.Model
+namespace SEWebApi.Model
 {
-    class StudentExercise
+    public class StudentExercise
     {
         public int Id { get; set; }
         public int StudentId { get; set; }
