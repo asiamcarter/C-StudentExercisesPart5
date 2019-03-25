@@ -72,9 +72,8 @@ namespace StudentExercisesPart5.Controllers
                         if (!reader.IsDBNull(reader.GetOrdinal("CohortId")))
                         {
                             Cohort currentCohort = cohorts[CohortId];
-                            if (!currentCohort.StudentList.Any(x => x.Id == reader.GetInt32(reader.GetOrdinal("StudentId"))))
+                            if (!currentCohort.StudentList.Exists(x => x.Id == reader.GetInt32(reader.GetOrdinal("StudentId"))))
                             {
-
                                 currentCohort.StudentList.Add(
                                 new Student
                                 {
@@ -84,27 +83,17 @@ namespace StudentExercisesPart5.Controllers
                                 }
                             );
                             }
-                            if (!currentCohort.InstructorList.Any(x => x.Id == reader.GetInt32(reader.GetOrdinal("InstructorId"))))
+                            if (!currentCohort.InstructorList.Exists(x => x.Id == reader.GetInt32(reader.GetOrdinal("InstructorId"))))
 
                             {
-
                                 currentCohort.InstructorList.Add(
-
                                     new Instructor
-
                                     {
-
                                         Id = reader.GetInt32(reader.GetOrdinal("InstructorId")),
-
                                         FirstName = reader.GetString(reader.GetOrdinal("InstructorFirstName")),
-
                                         LastName = reader.GetString(reader.GetOrdinal("InstructorLastName"))
-
-
                                     }
-
                                 );
-
                             }
                         }
                     }
