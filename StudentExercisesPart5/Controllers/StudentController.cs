@@ -70,36 +70,128 @@ namespace StudentExercisesPart5.Controllers
                 }
             }
 
-        //GET: api/Student?include=exercise
-        [HttpGet]
-        public async Task<string> GetStudentIfIncludes(string include)
-        {
-            return "test";
-        }
+        ////GET: api/Student?include=exercise
+        //[HttpGet]
+        //public async Task<string> GetStudentIfIncludes(string include)
+        //{
+        //    return "test";
+        //}
 
         // GET: api/Student/5
         [HttpGet("{id}", Name = "GetStudents")]
-        public string Get(int id)
+        public Student Get(int id)
         {
-            return "value";
+            using (SqlConnection conn = Connection)
+
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @" select s.id as StudentId, 
+		                                    s.FirstName,
+	                                        s.LastName,
+		                                    s.SlackHandle,
+		                                    s.CohortId,
+		                                    c.[Name] as CohortName,
+		                                    e.id as ExerciseId,
+		                                    e.[name] as ExerciseName,
+		                                    e.[Language]
+                                    from student s
+                                    left join Cohort c on s.CohortId = c.id
+                                    left join StudentExercise se on s.id = se.studentid
+                                    left join Exercise e on se.exerciseid = e.id
+                                    WHERE s.id = @Id";
+                    cmd.Parameters.Add(new SqlParameter("@Id", id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    Student student = null;
+                    while (reader.Read())
+                    {
+                        student = new Student
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("StudentId")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                            SlackHandle = reader.GetString(reader.GetOrdinal("SlackHandle")),
+                            CohortId = reader.GetInt32(reader.GetOrdinal("CohortId")),
+                            cohort = new Cohort
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("CohortId")),
+                                Name = reader.GetString(reader.GetOrdinal("CohortName"))
+                            }
+                        };
+                       
+                    }
+                    reader.Close();
+                    return student;
+                }
+            }
         }
 
         // POST: api/Student
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<IActionResult> Post([FromBody] Student newStudent)
         {
+            using(SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"INSERT INTO Student (FirstName, LastName, SlackHandle, CohortId)
+                                        OUTPUT INSERTED.Id
+                                        VALUES (@FirstName, @LastName, @SlackHandle, @CohortId);";
+                    cmd.Parameters.Add(new SqlParameter("@FirstName", newStudent.FirstName));
+                    cmd.Parameters.Add(new SqlParameter("@LastName", newStudent.LastName));
+                    cmd.Parameters.Add(new SqlParameter("@SlackHandle", newStudent.SlackHandle));
+                    cmd.Parameters.Add(new SqlParameter("@CohortId", newStudent.CohortId));
+
+                    int newId = (int)cmd.ExecuteScalar();
+                    newStudent.Id = newId;
+                    return CreatedAtRoute("GetStudents", new { id = newId }, newStudent);
+
+                }
+            }
         }
 
         // PUT: api/Student/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public void Put(int id, [FromBody] Student student)
         {
+            using(SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"UPDATE Student
+                                        SET FirstName = @FirstName, 
+                                            LastName = @LastName,
+                                            SlackHandle = @SlackHandle,
+                                            CohortId = @CohortId
+                                        WHERE id = @id;";
+                    cmd.Parameters.Add(new SqlParameter("@FirstName", student.FirstName));
+                    cmd.Parameters.Add(new SqlParameter("@LastName", student.LastName));
+                    cmd.Parameters.Add(new SqlParameter("@SlackHandle", student.SlackHandle));
+                    cmd.Parameters.Add(new SqlParameter("@CohortId", student.CohortId));
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
+            using(SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using(SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "DELETE FROM Student WHERE id = @id;";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
     }
 }
