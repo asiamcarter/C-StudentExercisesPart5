@@ -16,24 +16,19 @@ namespace SEWebApi.Controllers
     [ApiController]
     public class ExerciseController : ControllerBase
     {
-        private readonly IConfiguration _config;
-
-        public ExerciseController(IConfiguration config)
-        {
-            _config = config;
-        }
-
         public SqlConnection Connection
+
         {
             get
             {
-                return new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+                string connectionSTring = "Server=DESKTOP-7FFQBEO\\SQLEXPRESS; Database=StudentExerciseDB; Integrated Security = True; Connect Timeout = 30; Encrypt = False; TrustServerCertificate = False; ApplicationIntent = ReadWrite; MultiSubnetFailover = False";
+                return new SqlConnection(connectionSTring);
             }
         }
 
         //2. Code for getting a list of exercises
-         [HttpGet]
-        public async Task<IActionResult> Get()
+        [HttpGet]
+        public IEnumerable<Exercise> GetExercises()
         {
             using (SqlConnection conn = Connection)
             {
@@ -56,21 +51,23 @@ namespace SEWebApi.Controllers
                         exercises.Add(exercise);
                     }
                     reader.Close();
-                    return Ok(exercises);
+                    return exercises;
                 }
             }
         }
 
         //3. Code for getting a single exercise
-        [HttpGet("{id}", Name = "GetExercise")]
-        public async Task<IActionResult> Get([FromRoute] int id)
+        [HttpGet("{id}", Name = "GetExercises")]
+        public Exercise Get(int id)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using(SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT Id, Name, Language FROM Exercise WHERE Id = @id";
+                    cmd.CommandText = @"SELECT Id, Name, Language 
+                                        FROM Exercise 
+                                        WHERE Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
 
@@ -86,7 +83,7 @@ namespace SEWebApi.Controllers
                         };
                     }
                     reader.Close();
-                    return Ok(exercise);
+                    return exercise;
                 }
             }
         }
@@ -124,7 +121,7 @@ namespace SEWebApi.Controllers
 
                 {
                     cmd.CommandText = @"UPDATE Exercise
-                                        SET Name = @ExerciseName, Language =                            @ExerciseLanguage
+                                        SET Name = @ExerciseName, Language =                         @ExerciseLanguage
                                         WHERE Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@ExerciseName", exercise.Name));
                     cmd.Parameters.Add(new SqlParameter("@ExerciseLanguage", exercise.Language));
