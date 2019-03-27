@@ -24,7 +24,7 @@ namespace StudentExercisesPart5.Controllers
         }
         // GET: api/Cohort
         [HttpGet]
-        public List<Cohort> GetAllCohorts()
+        public List<Cohort> GetAllCohorts(string q)
         {
             using (SqlConnection conn = Connection)
 
@@ -32,12 +32,13 @@ namespace StudentExercisesPart5.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT c.id AS CohortId, c.Name as CohortName,
+                    cmd.CommandText = $@"SELECT c.id AS CohortId, c.Name as CohortName,
                                         s.Id AS StudentId, s.FirstName AS StudentFirstName, s.LastName                AS StudentLastName, s.SlackHandle as StudentSlackHandle,
                                           i.Id AS InstructorId, i.FirstName AS InstructorFirstName,                     i.LastName AS InstructorLastName, i.SlackHandle as                            InstructorSlackHandle
                                             FROM Cohort c
                                             LEFT JOIN Student as s ON s.CohortId = c.id
-                                            LEFT JOIN Instructor as i ON i.CohortId = c.id;";
+                                            LEFT JOIN Instructor as i ON i.CohortId = c.id
+                                            WHERE c.Name LIKE '%{q}%';";
                 
                     SqlDataReader reader = cmd.ExecuteReader();
 
@@ -115,7 +116,7 @@ namespace StudentExercisesPart5.Controllers
                                         FROM Cohort c
                                         LEFT JOIN Student as s ON s.CohortId = c.id
                                         LEFT JOIN Instructor as i ON i.CohortId = c.id
-                                    WHERE c.Id = @Id";
+                                        WHERE c.Id = @Id";
                     cmd.Parameters.Add(new SqlParameter("@Id", id));
 
                     SqlDataReader reader = cmd.ExecuteReader();
