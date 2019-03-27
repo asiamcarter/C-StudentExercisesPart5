@@ -13,6 +13,6 @@ namespace SEWebApi.Model
         public string SlackHandle { get; set; }
         public int CohortId { get; set; }
         public Cohort cohort { get; set; }
-        public List<Exercise> Exercises { get; set; }
+        public List<Exercise> ExerciseList { get; set; } = new List<Exercise>();
     }
 }
