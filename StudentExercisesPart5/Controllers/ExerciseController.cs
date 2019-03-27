@@ -28,7 +28,7 @@ namespace SEWebApi.Controllers
 
         //2. Code for getting a list of exercises
         [HttpGet]
-        public IEnumerable<Exercise> GetExercises(string include)
+        public IEnumerable<Exercise> GetExercises(string include, string q)
         {
             using (SqlConnection conn = Connection)
             {
@@ -44,8 +44,9 @@ namespace SEWebApi.Controllers
                                             s.FirstName as StudentFirstName,
                                             s.LastName as StudentLastName
                                             FROM Exercise as e
-                                            LEFT JOIN StudentExercise as se on e.id = se.ExerciseId
-                                            LEFT JOIN Student as s on se.StudentId = s.id";
+                                            LEFT JOIN StudentExercise                                          
+                                            LEFT JOIN Student as s on se.StudentId = s.id
+                                            WHERE e.Name LIKE '%{q}%' OR e.Language LIKE '%{q}%'";
                         SqlDataReader reader = cmd.ExecuteReader();
                         Dictionary<int, Exercise> exercises = new Dictionary<int, Exercise>();
 
@@ -86,7 +87,9 @@ namespace SEWebApi.Controllers
                     } else 
                     {
                         
-                        cmd.CommandText = "SELECT Id, Name, Language FROM Exercise";
+                        cmd.CommandText = $@"SELECT Id, Name, Language FROM Exercise 
+                                             WHERE Name LIKE '%{q}%' OR Language LIKE '%{q}%'";
+                        //C# does not work...something with the '#' symbol?
                         SqlDataReader reader = cmd.ExecuteReader();
                         List<Exercise> exercises = new List<Exercise>();
 
