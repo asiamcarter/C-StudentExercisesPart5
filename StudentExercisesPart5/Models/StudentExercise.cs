@@ -11,5 +11,6 @@ namespace SEWebApi.Model
         public Student Student { get; set; }
         public int ExerciseId { get; set; }
         public Exercise Exercise { get; set; }
+        public List<Exercise> ExerciseList { get; set; } = new List<Exercise>();
     }
 }
