@@ -24,7 +24,7 @@ namespace StudentExercisesPart5.Controllers
         }
         // GET: api/Instructor
         [HttpGet]
-        public IEnumerable<Instructor> GetInstructors()
+        public IEnumerable<Instructor> GetInstructors(string q)
         {
             using (SqlConnection conn = Connection)
 
@@ -32,14 +32,15 @@ namespace StudentExercisesPart5.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT i.id as InstructorId, 
+                    cmd.CommandText = $@"SELECT i.id as InstructorId, 
                                                 i.FirstName, 
                                                 i.LastName, 
                                                 i.SlackHandle, 
                                                 c.Id as CohortId,
                                                 c.Name as CohortName
                                         FROM Instructor as i
-                                        LEFT JOIN Cohort as c on i.CohortId = c.id";
+                                        LEFT JOIN Cohort as c on i.CohortId = c.id
+                                        WHERE i.FirstName LIKE '%{q}%' OR i.LastName LIKE '%{q}%' OR                        SlackHandle LIKE '%{q}%'";
                     SqlDataReader reader = cmd.ExecuteReader();
                     List<Instructor> instructors = new List<Instructor>();
                     while (reader.Read())
