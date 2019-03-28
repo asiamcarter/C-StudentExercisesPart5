@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using SEWebApi.Model;
 
 namespace StudentExercisesPart5.Controllers
@@ -13,13 +14,18 @@ namespace StudentExercisesPart5.Controllers
     [ApiController]
     public class StudentController : ControllerBase
     {
-        public SqlConnection Connection
+        private readonly IConfiguration configuration;
 
+        public StudentController(IConfiguration configuration)
+        {
+            this.configuration = configuration;
+        }
+
+        public SqlConnection Connection
         {
             get
             {
-                string connectionSTring = "Server=DESKTOP-7FFQBEO\\SQLEXPRESS; Database=StudentExerciseDB; Integrated Security = True; Connect Timeout = 30; Encrypt = False; TrustServerCertificate = False; ApplicationIntent = ReadWrite; MultiSubnetFailover = False";
-                return new SqlConnection(connectionSTring);
+                return new SqlConnection(configuration.GetConnectionString("DefaultConnection"));
             }
         }
         // GET: api/Student
@@ -215,7 +221,7 @@ namespace StudentExercisesPart5.Controllers
 
         // PUT: api/Student/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] Student student)
+        public IActionResult Put(int id, [FromBody] Student student)
         {
             using(SqlConnection conn = Connection)
             {
@@ -235,6 +241,7 @@ namespace StudentExercisesPart5.Controllers
                     cmd.Parameters.Add(new SqlParameter("@id", id));
 
                     cmd.ExecuteNonQuery();
+                    return NoContent();
                 }
             }
         }

@@ -16,13 +16,18 @@ namespace SEWebApi.Controllers
     [ApiController]
     public class ExerciseController : ControllerBase
     {
-        public SqlConnection Connection
+        private readonly IConfiguration configuration;
 
+        public ExerciseController(IConfiguration configuration)
+        {
+            this.configuration = configuration;
+        }
+
+        public SqlConnection Connection
         {
             get
             {
-                string connectionSTring = "Server=DESKTOP-7FFQBEO\\SQLEXPRESS; Database=StudentExerciseDB; Integrated Security = True; Connect Timeout = 30; Encrypt = False; TrustServerCertificate = False; ApplicationIntent = ReadWrite; MultiSubnetFailover = False";
-                return new SqlConnection(connectionSTring);
+                return new SqlConnection(configuration.GetConnectionString("DefaultConnection"));
             }
         }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using SEWebApi.Model;
 
 namespace StudentExercisesPart5.Controllers
@@ -13,13 +14,18 @@ namespace StudentExercisesPart5.Controllers
     [ApiController]
     public class CohortController : ControllerBase
     {
-        public SqlConnection Connection
+        private readonly IConfiguration configuration;
 
+        public CohortController(IConfiguration configuration)
+        {
+            this.configuration = configuration;
+        }
+
+        public SqlConnection Connection
         {
             get
             {
-                string connectionSTring = "Server=DESKTOP-7FFQBEO\\SQLEXPRESS; Database=StudentExerciseDB; Integrated Security = True; Connect Timeout = 30; Encrypt = False; TrustServerCertificate = False; ApplicationIntent = ReadWrite; MultiSubnetFailover = False";
-                return new SqlConnection(connectionSTring);
+                return new SqlConnection(configuration.GetConnectionString("DefaultConnection"));
             }
         }
         // GET: api/Cohort
@@ -103,7 +109,7 @@ namespace StudentExercisesPart5.Controllers
 
         // GET: api/Cohort/5
         [HttpGet("{id}", Name = "GetCohort")]
-        public  List<Cohort> Get(int id)
+        public async Task<IActionResult> GetCohort(int id)
         {
             using (SqlConnection conn = Connection)
             {
@@ -121,30 +127,28 @@ namespace StudentExercisesPart5.Controllers
 
                     SqlDataReader reader = cmd.ExecuteReader();
 
-                    Dictionary<int, Cohort> cohorts = new Dictionary<int, Cohort>();
+                    Cohort cohort = null;
                     while (reader.Read())
                     {
-                        int CohortId = reader.GetInt32(reader.GetOrdinal("CohortId"));
-                        if (!cohorts.ContainsKey(CohortId))
-                        {
-                            Cohort newCohort = new Cohort
-                            {
-                                Id = CohortId,
-                                Name = reader.GetString(reader.GetOrdinal("CohortName")),
-                                StudentList = new List<Student>(),
-                                InstructorList = new List<Instructor>()
-                            };
 
-                            cohorts.Add(CohortId, newCohort);
-                        }
+                        cohort = new Cohort()
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("CohortId")),
+                            Name = reader.GetString(reader.GetOrdinal("CohortName")),
+                            StudentList = new List<Student>(),
+                            InstructorList = new List<Instructor>()
+                        };
+
+
+
                         if (!reader.IsDBNull(reader.GetOrdinal("CohortId")))
                         {
-                            Cohort currentCohort = cohorts[CohortId];
+
                             if (!reader.IsDBNull(reader.GetOrdinal("StudentId")))
                             {
-                                if (!currentCohort.StudentList.Exists(x => x.Id == reader.GetInt32(reader.GetOrdinal("StudentId"))))
+                                if (!cohort.StudentList.Exists(x => x.Id == reader.GetInt32(reader.GetOrdinal("StudentId"))))
                                 {
-                                    currentCohort.StudentList.Add(
+                                    cohort.StudentList.Add(
                                     new Student
                                     {
                                         Id = reader.GetInt32(reader.GetOrdinal("StudentId")),
@@ -156,10 +160,10 @@ namespace StudentExercisesPart5.Controllers
                             }
                             if (!reader.IsDBNull(reader.GetOrdinal("InstructorId")))
                             {
-                                if (!currentCohort.InstructorList.Exists(x => x.Id == reader.GetInt32(reader.GetOrdinal("InstructorId"))))
+                                if (!cohort.InstructorList.Exists(x => x.Id == reader.GetInt32(reader.GetOrdinal("InstructorId"))))
 
                                 {
-                                    currentCohort.InstructorList.Add(
+                                    cohort.InstructorList.Add(
                                         new Instructor
                                         {
                                             Id = reader.GetInt32(reader.GetOrdinal("InstructorId")),
@@ -171,8 +175,10 @@ namespace StudentExercisesPart5.Controllers
                             }
                         }
                     }
+                    
                     reader.Close();
-                    return cohorts.Values.ToList();                  
+                    //return cohorts.Values.ToList();  
+                    return Ok(cohort);
                 }
             }                  
         }
@@ -193,7 +199,7 @@ namespace StudentExercisesPart5.Controllers
 
                     int newId = (int)cmd.ExecuteScalar();
                     newCohort.Id = newId;
-                    return CreatedAtRoute("GetCohorts", new { id = newId }, newCohort);
+                    return CreatedAtRoute("GetCohort", new { id = newId }, newCohort);
 
                 }
             }
@@ -201,7 +207,7 @@ namespace StudentExercisesPart5.Controllers
 
         // PUT: api/Cohort/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] Cohort cohort)
+        public IActionResult Put(int id, [FromBody] Cohort cohort)
         {
             using (SqlConnection conn = Connection)
 
@@ -215,6 +221,7 @@ namespace StudentExercisesPart5.Controllers
                     cmd.Parameters.Add(new SqlParameter("@CohortName", cohort.Name));
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     cmd.ExecuteNonQuery();
+                    return NoContent();
                 }
             }
         }
